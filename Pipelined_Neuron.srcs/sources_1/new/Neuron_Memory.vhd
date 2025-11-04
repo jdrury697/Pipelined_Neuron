@@ -68,11 +68,6 @@ constant NUM_NEURONS : natural := 2 ** GEN_ADDR_WIDTH;
 subtype neuron_addr_t_l is unsigned(GEN_ADDR_WIDTH - 1 downto 0);
 subtype weight_array_t_l is weight_array_t(0 to GEN_NUM_WEIGHTS_PER_NEURON - 1);
 
---subtype neuron_t_l is neuron_t(
---    addr(neuron_addr_t_l'range),
---    weights(weight_array_t_l'range)
---);
-
 type neuron_t_l is record
     addr    : neuron_addr_t_l;
     Um      : um_t;
@@ -171,19 +166,5 @@ begin
         end if;
     end if;
 end process;
-    
---write_new_um : process(clk, rst)
---begin
---    if rst = '1' then
---        for n in 0 to NUM_NEURONS - 1 loop
---            neurons(n).Um <= (others => '0');
---            neurons(n).valid <= '1';
---        end loop;
---    elsif rising_edge(clk) and i_valid = '1' then
---        neurons(to_integer(unsigned(i_neuron_addr))).um <= signed(i_new_Um);
---        --Ensures that the neuron is written to before new um is calculated each time
---        neurons(to_integer(unsigned(i_neuron_addr))).valid <= '1';
---    end if;
---end process;
 
 end rtl;
