@@ -1,0 +1,115 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 09/10/2025 09:12:43 AM
+-- Design Name: 
+-- Module Name: dsp_neuron_tb - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+library UNISIM;
+use UNISIM.VComponents.all;
+
+library std;
+    use std.textio.all;
+    use std.env.finish;
+
+entity dsp_neuron_tb is
+end dsp_neuron_tb;
+
+architecture sim of dsp_neuron_tb is
+
+constant PERIOD     : time := 10 ns;
+signal clk          : std_logic := '0';
+signal rst          : std_logic := '0';
+signal i_V          : std_logic_vector(24 downto 0) := (others => '0');
+signal i_T          : std_logic_vector(17 downto 0) := (others => '0');
+signal i_Um         : std_logic_vector(29 downto 0) := (others => '0'); -- input C and D
+signal o_Um         : std_logic_vector(26 downto 0);
+signal o_overflow   : std_logic;
+
+constant RESET_ASSERT : std_logic_vector := "000000000000000000000000000";
+
+
+begin
+
+    dut : entity work.dsp_neuron(rtl)
+        port map(
+            clk         => clk,
+            rst         => rst,
+            i_V         => i_V,
+            i_T         => i_T,
+            i_Um        => i_Um,
+            o_Um        => o_Um,
+            o_overflow  => o_overflow
+        );
+        
+    clk <= not clk after PERIOD/2;
+    
+    sim_proc: process
+    begin
+        rst <= '1';
+        i_V <= "0" & x"00000A";
+        i_T <= "00" & x"0002";
+        i_Um <= "00" & x"0000005";
+        wait until rising_edge(clk); -- clk 1
+        assert o_Um = RESET_ASSERT
+            report "Reset Failed | Expected output: 0x0000000 | Actual output: " & to_hstring(to_bitvector(o_Um))
+            severity error;
+        rst <= '0';
+        wait until rising_edge(clk); -- clk 2
+        
+        i_V <= "0" & x"000014";
+        i_T <= "00" & x"0004";
+        i_Um <= "00" & x"000000A";
+        wait until rising_edge(clk); -- clk 3
+        
+        i_V <= "0" & x"000023";
+        i_T <= "00" & x"0002";
+        i_Um <= "00" & x"0000004";
+        wait until rising_edge(clk); -- clk 4
+        
+        i_V <= (others => '0');
+        i_T <= (others => '0');
+        i_Um <= (others => '0');
+        wait until rising_edge(clk); -- clk 5
+        wait until rising_edge(clk); -- clk 6
+
+        assert o_Um = "000" & x"00000F"
+            report "First calcualtion failed | Expected output: 0x000000F | Actual output: " & to_hstring(to_bitvector(o_Um))
+            severity error;
+        wait until rising_edge(clk); -- clk 6
+        
+        assert o_Um = "000" & x"000032"
+            report "Second calcualtion failed | Expected output: 0x0000032 | Actual output: " & to_hstring(to_bitvector(o_Um))
+            severity error;
+        wait until rising_edge(clk);
+        assert o_Um = "000" & x"000042"
+            report "Third calcualtion failed | Expected output: 0x0000042 | Actual output: " & to_hstring(to_bitvector(o_Um))
+            severity error;
+        wait until rising_edge(clk);
+        report "Simulation Finished";
+        finish;
+    end process;
+end sim;

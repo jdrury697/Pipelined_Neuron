@@ -1,0 +1,54 @@
+# Xilinx Vivado generated files
+# =================================
+*.log
+*.jou
+*.str
+
+# Project files
+*.xpr
+*.xpr.lock
+*.xpr.user
+*.xpr.bin
+webtalk*.xml
+webtalk*.jou
+*.wdb
+*.wcfg
+
+# Cache and runs
+*.cache/
+*.runs/
+*.sim/
+*.gen/
+
+# IP user files
+*.ip_user_files/
+
+# Hardware and implementation
+*.bit
+*.bin
+*.ltx
+*.prm
+*.sysdef
+*.vdi
+*.bmm
+*.bda
+*.binst
+*.html
+*.xml
+*.rpt
+*.csv
+*_wave/
+*.pb
+*.aps
+*.dcp
+*.rnG
+*.sqa
+*.tcl.log
+.Xil/
+*_wrapper.vhd
+*_wrapper.v
+
+# Vitis / SDK specific
+*.sdk/
+*.sw/
+.metadata/
