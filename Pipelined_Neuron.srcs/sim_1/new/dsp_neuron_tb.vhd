@@ -43,11 +43,13 @@ architecture sim of dsp_neuron_tb is
 constant PERIOD     : time := 10 ns;
 signal clk          : std_logic := '0';
 signal rst          : std_logic := '0';
+signal i_valid      : std_logic := '0';
 signal i_V          : std_logic_vector(24 downto 0) := (others => '0');
 signal i_T          : std_logic_vector(17 downto 0) := (others => '0');
 signal i_Um         : std_logic_vector(29 downto 0) := (others => '0'); -- input C and D
 signal o_Um         : std_logic_vector(26 downto 0);
 signal o_overflow   : std_logic;
+signal o_valid      : std_logic;
 
 constant RESET_ASSERT : std_logic_vector := "000000000000000000000000000";
 
@@ -58,11 +60,13 @@ begin
         port map(
             clk         => clk,
             rst         => rst,
+            i_valid     => i_valid,
             i_V         => i_V,
             i_T         => i_T,
             i_Um        => i_Um,
             o_Um        => o_Um,
-            o_overflow  => o_overflow
+            o_overflow  => o_overflow,
+            o_valid     => o_valid
         );
         
     clk <= not clk after PERIOD/2;
@@ -83,32 +87,57 @@ begin
         i_V <= "0" & x"000014";
         i_T <= "00" & x"0004";
         i_Um <= "00" & x"000000A";
+        i_valid <= '1';
         wait until rising_edge(clk); -- clk 3
+        
+        assert o_valid = '0'
+            report "Valid signal falsely output as 1"
+            severity error;
         
         i_V <= "0" & x"000023";
         i_T <= "00" & x"0002";
         i_Um <= "00" & x"0000004";
         wait until rising_edge(clk); -- clk 4
         
+        assert o_valid = '0'
+            report "Valid signal falsely output as 1"
+            severity error;
+        
         i_V <= (others => '0');
         i_T <= (others => '0');
         i_Um <= (others => '0');
         wait until rising_edge(clk); -- clk 5
+        
+        assert o_valid = '0'
+            report "Valid signal falsely output as 1"
+            severity error;
+        
         wait until rising_edge(clk); -- clk 6
 
         assert o_Um = "000" & x"00000F"
             report "First calcualtion failed | Expected output: 0x000000F | Actual output: " & to_hstring(to_bitvector(o_Um))
+            severity error;
+        assert o_valid = '1'
+            report "Valid signal did not carry through with the um calculation"
             severity error;
         wait until rising_edge(clk); -- clk 6
         
         assert o_Um = "000" & x"000032"
             report "Second calcualtion failed | Expected output: 0x0000032 | Actual output: " & to_hstring(to_bitvector(o_Um))
             severity error;
+        assert o_valid = '1'
+            report "Valid signal did not carry through with the um calculation"
+            severity error;
         wait until rising_edge(clk);
+        
         assert o_Um = "000" & x"000042"
             report "Third calcualtion failed | Expected output: 0x0000042 | Actual output: " & to_hstring(to_bitvector(o_Um))
             severity error;
+        assert o_valid = '1'
+            report "Valid signal did not carry through with the um calculation"
+            severity error;
         wait until rising_edge(clk);
+        
         report "Simulation Finished";
         finish;
     end process;

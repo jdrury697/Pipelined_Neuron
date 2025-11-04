@@ -44,6 +44,8 @@ signal neuron_voltage   : std_logic_vector(26 downto 0) := (others => '0');
 signal overflow         : std_logic := '0';
 signal spike            : std_logic := '0';
 signal um               : std_logic_vector(26 downto 0) := (others => '0');
+signal i_valid          : std_logic := '0';
+signal o_valid          : std_logic := '0';
 
 constant delay          : time := 10 ns;
 constant ZERO           : std_logic_vector(26 downto 0) := (others => '0');
@@ -54,6 +56,8 @@ begin
         port map(
             i_neuron_voltage    => neuron_voltage,
             i_overflow          => overflow,
+            i_valid             => i_valid,
+            o_valid             => o_valid,
             o_spike             => spike,
             o_um                => um
         );
@@ -62,6 +66,7 @@ begin
     begin
         wait for delay;
         neuron_voltage <= "000" & x"00000A";
+        i_valid <= '1';
         wait for delay;
         assert spike = '0'
             report "Spike incorrectly detected when neuron_voltage = 0x000000A"
@@ -104,6 +109,24 @@ begin
             severity error;
         assert um = ZERO
             report "Membrane potential did not output the correct value | Expected 0x0000000 | Actual Result:" & to_hstring(to_bitvector(um))
+            severity error;
+        wait for delay;
+        i_valid <= '0';
+        wait for delay;
+        assert spike = '0'
+            report "Spike fired when i_valid = 0"
+            severity error;
+        wait for delay;
+        overflow <= '1';
+        wait for delay;
+        assert spike = '0'
+            report "Spike fired when i_valid = 0"
+            severity error;
+        wait for delay;
+        i_valid <= '1';
+        wait for delay;
+        assert spike = '1'
+            report "Spike didn't fire when valid was set back to 1"
             severity error;
         wait for delay;
         report "Simulation Finished";

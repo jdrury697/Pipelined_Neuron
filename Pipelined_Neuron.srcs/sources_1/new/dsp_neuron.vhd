@@ -38,11 +38,13 @@ entity dsp_neuron is
     Port (
     clk         : in std_logic;
     rst         : in std_logic;
+    i_valid     : in std_logic;
     i_V         : in std_logic_vector(24 downto 0); -- input D
     i_T         : in std_logic_vector(17 downto 0); -- input B
     i_Um        : in std_logic_vector(29 downto 0); -- input A and C
     o_Um        : out std_logic_vector(26 downto 0);
-    o_overflow  : out std_logic
+    o_overflow  : out std_logic;
+    o_valid     : out std_logic
     );
 end dsp_neuron;
 
@@ -54,6 +56,10 @@ signal underflow    : std_logic;
 signal carryout     : std_logic_vector(3 downto 0);
 signal c_d1         : std_logic_vector(47 downto 0);
 signal c_d2         : std_logic_vector(47 downto 0);
+
+signal v_1          : std_logic := '0';
+signal v_2          : std_logic := '0';
+signal v_3          : std_logic := '0';
 
 -- unused tie off signals
 signal u_acout          : std_logic_vector(29 downto 0);
@@ -168,7 +174,21 @@ begin
         end if;
     end process;
     
+    valid_delay : process(clk)
+    begin
+        if rst = '1' then
+            v_1 <= '0';
+            v_2 <= '0';
+            v_3 <= '0';
+        elsif rising_edge(clk) then
+            v_1 <= i_valid;
+            v_2 <= v_1;
+            v_3 <= v_2;
+        end if;
+    end process;
+    
     o_Um <= result(26 downto 0);
     o_overflow <= overflow;
+    o_valid <= v_3;
 
 end rtl;

@@ -29,7 +29,9 @@ entity Spike_Control_Unit is
     Port (
         i_neuron_voltage    : in std_logic_vector(26 downto 0);
         i_overflow          : in std_logic;
+        i_valid             : in std_logic;
         o_spike             : out std_logic;
+        o_valid             : out std_logic;
         o_um                : out std_logic_vector(26 downto 0)
     );
 end Spike_Control_Unit;
@@ -42,8 +44,8 @@ signal is_spiking           : boolean := FALSE;
 
 begin
 
-    is_spiking <= i_overflow = '1' or (signed(i_neuron_voltage) > spike_threshold);
-
+    is_spiking <= (i_overflow = '1' or (signed(i_neuron_voltage) > spike_threshold)) and (i_valid = '1');
+    o_valid <= i_valid;
     o_spike <=  '1' when is_spiking else '0';
     o_um <= (others => '0') when is_spiking else i_neuron_voltage;
 
