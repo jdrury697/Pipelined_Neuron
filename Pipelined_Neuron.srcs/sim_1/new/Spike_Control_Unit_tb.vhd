@@ -40,23 +40,31 @@ end Spike_Control_Unit_tb;
 
 architecture sim of Spike_Control_Unit_tb is
 
+constant delay          : time := 10 ns;
+constant ZERO           : std_logic_vector(26 downto 0) := (others => '0');
+constant ADDR_WIDTH     : natural := 2;
+
 signal neuron_voltage   : std_logic_vector(26 downto 0) := (others => '0');
 signal overflow         : std_logic := '0';
 signal spike            : std_logic := '0';
 signal um               : std_logic_vector(26 downto 0) := (others => '0');
 signal i_valid          : std_logic := '0';
 signal o_valid          : std_logic := '0';
-
-constant delay          : time := 10 ns;
-constant ZERO           : std_logic_vector(26 downto 0) := (others => '0');
+signal i_neuron_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
+signal o_neuron_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
 
 begin
 
     dut : entity work.Spike_Control_Unit(rtl)
+        generic map(
+            GEN_ADDR_WIDTH => ADDR_WIDTH
+        )
         port map(
             i_neuron_voltage    => neuron_voltage,
             i_overflow          => overflow,
             i_valid             => i_valid,
+            i_neuron_addr       => i_neuron_addr,
+            o_neuron_addr       => o_neuron_addr,
             o_valid             => o_valid,
             o_spike             => spike,
             o_um                => um
@@ -67,6 +75,7 @@ begin
         wait for delay;
         neuron_voltage <= "000" & x"00000A";
         i_valid <= '1';
+        i_neuron_addr <= "00";
         wait for delay;
         assert spike = '0'
             report "Spike incorrectly detected when neuron_voltage = 0x000000A"
@@ -74,8 +83,12 @@ begin
         assert um = neuron_voltage
             report "Membrane potential did not output the correct value | Expected 0x000000A | Actual Result:" & to_hstring(to_bitvector(um))
             severity error;
+        assert o_neuron_addr = "00"
+            report "Neuron Addr did not properly pass through | Expected value: 0 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
+            severity error;
         wait for delay;
         overflow <= '1';
+        i_neuron_addr <= "10";
         wait for delay;
         assert spike = '1'
             report "Spike did not fire when overflow occured"
@@ -83,14 +96,21 @@ begin
         assert um = ZERO
             report "Membrane potential did not output the correct value | Expected 0x0000000 | Actual Result:" & to_hstring(to_bitvector(um))
             severity error;
+        assert o_neuron_addr = "10"
+            report "Neuron Addr did not properly pass through | Expected value: 2 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
+            severity error;
         wait for delay;
         overflow <= '0';
+        i_neuron_addr <= "11";
         wait for delay;
         assert spike = '0'
             report "Spike continued to fire even after overflow was set back to 0"
             severity error;
         assert um = neuron_voltage
             report "Membrane potential did not output the correct value | Expected 0x000000A | Actual Result:" & to_hstring(to_bitvector(um))
+            severity error;
+        assert o_neuron_addr = "11"
+            report "Neuron Addr did not properly pass through | Expected value: 3 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
             severity error;
         wait for delay;
         neuron_voltage <= "000" & x"0000FF";

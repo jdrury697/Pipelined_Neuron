@@ -35,16 +35,22 @@ Library UNIMACRO;
 use UNIMACRO.vcomponents.all;
 
 entity dsp_neuron is
+    generic(
+        GEN_ADDR_WIDTH : natural := 2
+    );
+    
     Port (
-    clk         : in std_logic;
-    rst         : in std_logic;
-    i_valid     : in std_logic;
-    i_V         : in std_logic_vector(24 downto 0); -- input D
-    i_T         : in std_logic_vector(17 downto 0); -- input B
-    i_Um        : in std_logic_vector(29 downto 0); -- input A and C
-    o_Um        : out std_logic_vector(26 downto 0);
-    o_overflow  : out std_logic;
-    o_valid     : out std_logic
+        clk                 : in std_logic;
+        rst                 : in std_logic;
+        i_valid             : in std_logic;
+        i_V                 : in std_logic_vector(24 downto 0); -- input D
+        i_T                 : in std_logic_vector(17 downto 0); -- input B
+        i_Um                : in std_logic_vector(29 downto 0); -- input A and C
+        i_neuron_addr       : in std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
+        o_Um                : out std_logic_vector(26 downto 0);
+        o_neuron_addr       : out std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
+        o_overflow          : out std_logic;
+        o_valid             : out std_logic
     );
 end dsp_neuron;
 
@@ -60,6 +66,10 @@ signal c_d2         : std_logic_vector(47 downto 0);
 signal v_1          : std_logic := '0';
 signal v_2          : std_logic := '0';
 signal v_3          : std_logic := '0';
+
+signal neuron_addr_1 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
+signal neuron_addr_2 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
+signal neuron_addr_3 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
 
 -- unused tie off signals
 signal u_acout          : std_logic_vector(29 downto 0);
@@ -187,8 +197,22 @@ begin
         end if;
     end process;
     
+    neuron_addr_delay : process(clk)
+    begin
+        if rst = '1' then
+            neuron_addr_1 <= (others => '0');
+            neuron_addr_2 <= (others => '0');
+            neuron_addr_3 <= (others => '0');
+        elsif rising_edge(clk) then
+            neuron_addr_1 <= i_neuron_addr;
+            neuron_addr_2 <= neuron_addr_1;
+            neuron_addr_3 <= neuron_addr_2; 
+        end if;
+    end process;
+    
     o_Um <= result(26 downto 0);
     o_overflow <= overflow;
     o_valid <= v_3;
+    o_neuron_addr <= neuron_addr_3;
 
 end rtl;

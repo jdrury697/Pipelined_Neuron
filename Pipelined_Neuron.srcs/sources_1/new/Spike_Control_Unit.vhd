@@ -26,12 +26,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity Spike_Control_Unit is
+    generic(
+        GEN_ADDR_WIDTH : natural := 2
+    );
     Port (
         i_neuron_voltage    : in std_logic_vector(26 downto 0);
         i_overflow          : in std_logic;
         i_valid             : in std_logic;
+        i_neuron_addr       : in std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
         o_spike             : out std_logic;
         o_valid             : out std_logic;
+        o_neuron_addr       : out std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
         o_um                : out std_logic_vector(26 downto 0)
     );
 end Spike_Control_Unit;
@@ -46,6 +51,7 @@ begin
 
     is_spiking <= (i_overflow = '1' or (signed(i_neuron_voltage) > spike_threshold)) and (i_valid = '1');
     o_valid <= i_valid;
+    o_neuron_addr <= i_neuron_addr;
     o_spike <=  '1' when is_spiking else '0';
     o_um <= (others => '0') when is_spiking else i_neuron_voltage;
 
