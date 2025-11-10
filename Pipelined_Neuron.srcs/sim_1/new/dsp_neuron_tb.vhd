@@ -46,15 +46,19 @@ constant ADDR_RESET : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0
 
 signal clk              : std_logic := '0';
 signal rst              : std_logic := '0';
+signal stall            : std_logic := '0';
 signal i_valid          : std_logic := '0';
 signal i_V              : std_logic_vector(24 downto 0) := (others => '0');
 signal i_T              : std_logic_vector(17 downto 0) := (others => '0');
 signal i_neuron_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
+signal i_finished_layer : std_logic := '0';
 signal i_Um             : std_logic_vector(29 downto 0) := (others => '0'); -- input C and D
 signal o_Um             : std_logic_vector(26 downto 0);
 signal o_overflow       : std_logic;
 signal o_valid          : std_logic;
 signal o_neuron_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
+signal o_finished_layer : std_logic;
+
 constant RESET_ASSERT : std_logic_vector := "000000000000000000000000000";
 
 
@@ -65,17 +69,20 @@ begin
             GEN_ADDR_WIDTH => ADDR_WIDTH
         )
         port map(
-            clk         => clk,
-            rst         => rst,
-            i_valid     => i_valid,
-            i_V         => i_V,
-            i_T         => i_T,
-            i_Um        => i_Um,
-            i_neuron_addr => i_neuron_addr,
-            o_Um        => o_Um,
-            o_overflow  => o_overflow,
-            o_valid     => o_valid,
-            o_neuron_addr => o_neuron_addr
+            clk                 => clk,
+            rst                 => rst,
+            stall               => stall,
+            i_valid             => i_valid,
+            i_V                 => i_V,
+            i_T                 => i_T,
+            i_Um                => i_Um,
+            i_neuron_addr       => i_neuron_addr,
+            i_finished_layer    => i_finished_layer,
+            o_Um                => o_Um,
+            o_overflow          => o_overflow,
+            o_valid             => o_valid,
+            o_neuron_addr       => o_neuron_addr,
+            o_finished_layer    => o_finished_layer
         );
         
     clk <= not clk after PERIOD/2;
@@ -104,10 +111,14 @@ begin
         i_T <= "00" & x"0004";
         i_Um <= "00" & x"000000A";
         i_valid <= '1';
+        i_finished_layer <= '1';
         i_neuron_addr <= "10";
         wait until rising_edge(clk); -- clk 3
         assert o_valid = '0'
             report "Valid signal falsely output as 1"
+            severity error;
+        assert o_finished_layer = '0'
+            report "Finished layer signal falsely output as 1"
             severity error;
         assert o_neuron_addr = "00"
             report "Neuron address output wrong | Expected value: 0 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
@@ -120,6 +131,9 @@ begin
         assert o_valid = '0'
             report "Valid signal falsely output as 1"
             severity error;
+        assert o_finished_layer = '0'
+            report "Finished layer signal falsely output as 1"
+            severity error;
         assert o_neuron_addr = "00"
             report "Neuron address output wrong | Expected value: 0 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
             severity error;
@@ -130,6 +144,9 @@ begin
         wait until rising_edge(clk); -- clk 5
         assert o_valid = '0'
             report "Valid signal falsely output as 1"
+            severity error;
+        assert o_finished_layer = '0'
+            report "Finished layer signal falsely output as 1"
             severity error;
         assert o_neuron_addr = "00"
             report "Neuron address output wrong | Expected value: 0 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
@@ -143,6 +160,9 @@ begin
         assert o_valid = '1'
             report "Valid signal did not carry through with the um calculation"
             severity error;
+        assert o_finished_layer = '1'
+            report "Finished layer signal did not carry through with the um calculation"
+            severity error;
         wait until rising_edge(clk); -- clk 6
         assert o_neuron_addr = "10"
             report "Neuron address output wrong | Expected value: 2 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
@@ -154,6 +174,9 @@ begin
         assert o_valid = '1'
             report "Valid signal did not carry through with the um calculation"
             severity error;
+        assert o_finished_layer = '1'
+            report "Finished layer signal did not carry through with the um calculation"
+            severity error;
         wait until rising_edge(clk);
         
         assert o_Um = "000" & x"000042"
@@ -161,6 +184,9 @@ begin
             severity error;
         assert o_valid = '1'
             report "Valid signal did not carry through with the um calculation"
+            severity error;
+        assert o_finished_layer = '1'
+            report "Finished layer signal did not carry through with the um calculation"
             severity error;
         wait until rising_edge(clk);
         

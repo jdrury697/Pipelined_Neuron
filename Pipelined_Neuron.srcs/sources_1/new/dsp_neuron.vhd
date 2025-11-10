@@ -42,15 +42,18 @@ entity dsp_neuron is
     Port (
         clk                 : in std_logic;
         rst                 : in std_logic;
+        stall               : in std_logic;
         i_valid             : in std_logic;
         i_V                 : in std_logic_vector(24 downto 0); -- input D
         i_T                 : in std_logic_vector(17 downto 0); -- input B
         i_Um                : in std_logic_vector(29 downto 0); -- input A and C
         i_neuron_addr       : in std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
+        i_finished_layer    : in std_logic;
         o_Um                : out std_logic_vector(26 downto 0);
         o_neuron_addr       : out std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
         o_overflow          : out std_logic;
-        o_valid             : out std_logic
+        o_valid             : out std_logic;
+        o_finished_layer    : out std_logic
     );
 end dsp_neuron;
 
@@ -63,9 +66,15 @@ signal carryout     : std_logic_vector(3 downto 0);
 signal c_d1         : std_logic_vector(47 downto 0);
 signal c_d2         : std_logic_vector(47 downto 0);
 
+signal dsp_clk      : std_logic;
+
 signal v_1          : std_logic := '0';
 signal v_2          : std_logic := '0';
 signal v_3          : std_logic := '0';
+
+signal finished_1   : std_logic := '0';
+signal finished_2   : std_logic := '0';
+signal finished_3   : std_logic := '0';
 
 signal neuron_addr_1 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
 signal neuron_addr_2 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
@@ -81,8 +90,10 @@ signal u_patt_detect    : std_logic;
 signal u_pattb_detect   : std_logic;
 
 begin
+
+    dsp_clk <= clk and not stall;
    
-    DSP48E1_inst : DSP48E1
+   DSP48E1_inst : DSP48E1
    generic map (
       -- Feature Control Attributes: Data Path Selection
       A_INPUT => "DIRECT",               -- Selects A input source, "DIRECT" (A port) or "CASCADE" (ACIN port)
@@ -137,7 +148,7 @@ begin
       -- Control: 4-bit (each) input: Control Inputs/Status Bits
       ALUMODE => "0000",               -- 4-bit input: ALU control input
       CARRYINSEL => (others => '0'),         -- 3-bit input: Carry select input
-      CLK => clk,                       -- 1-bit input: Clock input
+      CLK => dsp_clk,                       -- 1-bit input: Clock input
       INMODE => "01101",                -- 5-bit input: INMODE control input
       OPMODE => "0110101",              -- 7-bit input: Operation mode input
       -- Data: 30-bit (each) input: Data Ports
@@ -177,7 +188,7 @@ begin
    
    c_reg_delay : process(clk)
     begin
-        if rising_edge(clk) then
+        if rising_edge(clk) and stall = '0' then
             c_d1(29 downto 0)   <= i_Um;
             c_d1(47 downto 30)  <= (others => '0');
             c_d2                <= c_d1;
@@ -190,10 +201,23 @@ begin
             v_1 <= '0';
             v_2 <= '0';
             v_3 <= '0';
-        elsif rising_edge(clk) then
+        elsif rising_edge(clk) and stall = '0' then
             v_1 <= i_valid;
             v_2 <= v_1;
             v_3 <= v_2;
+        end if;
+    end process;
+    
+    finished_delay : process(clk)
+    begin
+        if rst = '1' then
+            finished_1 <= '0';
+            finished_2 <= '0';
+            finished_3 <= '0';
+        elsif rising_edge(clk) and stall = '0' then
+            finished_1 <= i_finished_layer;
+            finished_2 <= finished_1;
+            finished_3 <= finished_2;
         end if;
     end process;
     
@@ -203,7 +227,7 @@ begin
             neuron_addr_1 <= (others => '0');
             neuron_addr_2 <= (others => '0');
             neuron_addr_3 <= (others => '0');
-        elsif rising_edge(clk) then
+        elsif rising_edge(clk) and stall = '0' then
             neuron_addr_1 <= i_neuron_addr;
             neuron_addr_2 <= neuron_addr_1;
             neuron_addr_3 <= neuron_addr_2; 
@@ -214,5 +238,6 @@ begin
     o_overflow <= overflow;
     o_valid <= v_3;
     o_neuron_addr <= neuron_addr_3;
+    o_finished_layer <= finished_3;
 
 end rtl;

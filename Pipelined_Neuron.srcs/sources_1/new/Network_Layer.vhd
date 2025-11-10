@@ -70,6 +70,8 @@ signal dsp_neuron_addr      : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
 signal dsp_overflow         : std_logic;
 signal dsp_valid            : std_logic;
 
+signal dsp_finished_layer   : std_logic;
+
 begin
 
 NEURON_MEM : entity work.Neuron_Memory(rtl)
@@ -105,15 +107,18 @@ DSP_BLOCK : entity work.dsp_neuron(rtl)
     port map(
         clk => clk,
         rst => rst,
+        stall => '0', -- FIX THIS
         i_valid => mem_valid,
         i_V => mem_weight_sum_adj,
         i_T => GEN_TAU,
         i_Um => mem_Um_adj,
         i_neuron_addr => mem_neuron_addr,
+        i_finished_layer => '0', -- FIX THIS
         o_um => dsp_um,
         o_neuron_addr => dsp_neuron_addr,
         o_overflow => dsp_overflow,
-        o_valid => dsp_valid
+        o_valid => dsp_valid,
+        o_finished_layer => dsp_finished_layer
     );
     
 SPIKE_CTRL : entity work.Spike_Control_Unit(rtl)
