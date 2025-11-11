@@ -66,8 +66,6 @@ signal carryout     : std_logic_vector(3 downto 0);
 signal c_d1         : std_logic_vector(47 downto 0);
 signal c_d2         : std_logic_vector(47 downto 0);
 
-signal dsp_clk      : std_logic;
-
 signal v_1          : std_logic := '0';
 signal v_2          : std_logic := '0';
 signal v_3          : std_logic := '0';
@@ -91,7 +89,6 @@ signal u_pattb_detect   : std_logic;
 
 begin
 
-    dsp_clk <= clk and not stall;
    
    DSP48E1_inst : DSP48E1
    generic map (
@@ -148,7 +145,7 @@ begin
       -- Control: 4-bit (each) input: Control Inputs/Status Bits
       ALUMODE => "0000",               -- 4-bit input: ALU control input
       CARRYINSEL => (others => '0'),         -- 3-bit input: Carry select input
-      CLK => dsp_clk,                       -- 1-bit input: Clock input
+      CLK => clk,                       -- 1-bit input: Clock input
       INMODE => "01101",                -- 5-bit input: INMODE control input
       OPMODE => "0110101",              -- 7-bit input: Operation mode input
       -- Data: 30-bit (each) input: Data Ports
@@ -158,19 +155,19 @@ begin
       CARRYIN => '0',               -- 1-bit input: Carry input signal
       D => i_V,                           -- 25-bit input: D data input
       -- Reset/Clock Enable: 1-bit (each) input: Reset/Clock Enable Inputs
-      CEA1 => '1',                     -- 1-bit input: Clock enable input for 1st stage AREG
-      CEA2 => '1',                     -- 1-bit input: Clock enable input for 2nd stage AREG
-      CEAD => '1',                     -- 1-bit input: Clock enable input for ADREG
-      CEALUMODE => '1',           -- 1-bit input: Clock enable input for ALUMODE
-      CEB1 => '1',                     -- 1-bit input: Clock enable input for 1st stage BREG
-      CEB2 => '1',                     -- 1-bit input: Clock enable input for 2nd stage BREG
-      CEC => '1',                       -- 1-bit input: Clock enable input for CREG
-      CECARRYIN => '1',           -- 1-bit input: Clock enable input for CARRYINREG
-      CECTRL => '1',                 -- 1-bit input: Clock enable input for OPMODEREG and CARRYINSELREG
-      CED => '1',                       -- 1-bit input: Clock enable input for DREG
-      CEINMODE => '1',             -- 1-bit input: Clock enable input for INMODEREG
-      CEM => '1',                       -- 1-bit input: Clock enable input for MREG
-      CEP => '1',                       -- 1-bit input: Clock enable input for PREG
+      CEA1 => not stall,                     -- 1-bit input: Clock enable input for 1st stage AREG
+      CEA2 => not stall,                     -- 1-bit input: Clock enable input for 2nd stage AREG
+      CEAD => not stall,                     -- 1-bit input: Clock enable input for ADREG
+      CEALUMODE => not stall,           -- 1-bit input: Clock enable input for ALUMODE
+      CEB1 => not stall,                     -- 1-bit input: Clock enable input for 1st stage BREG
+      CEB2 => not stall,                     -- 1-bit input: Clock enable input for 2nd stage BREG
+      CEC => not stall,                       -- 1-bit input: Clock enable input for CREG
+      CECARRYIN => not stall,           -- 1-bit input: Clock enable input for CARRYINREG
+      CECTRL => not stall,                 -- 1-bit input: Clock enable input for OPMODEREG and CARRYINSELREG
+      CED => not stall,                       -- 1-bit input: Clock enable input for DREG
+      CEINMODE => not stall,             -- 1-bit input: Clock enable input for INMODEREG
+      CEM => not stall,                       -- 1-bit input: Clock enable input for MREG
+      CEP => not stall,                       -- 1-bit input: Clock enable input for PREG
       RSTA => rst,                     -- 1-bit input: Reset input for AREG
       RSTALLCARRYIN => rst,   -- 1-bit input: Reset input for CARRYINREG
       RSTALUMODE => rst,         -- 1-bit input: Reset input for ALUMODEREG

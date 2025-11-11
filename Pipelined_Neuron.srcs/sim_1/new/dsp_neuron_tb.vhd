@@ -94,6 +94,7 @@ begin
         i_T <= "00" & x"0002";
         i_Um <= "00" & x"0000005";
         i_neuron_addr <= "00";
+        stall <= '0';
         wait until rising_edge(clk); -- clk 1
         assert o_Um = RESET_ASSERT
             report "Reset Failed | Expected output: 0x0000000 | Actual output: " & to_hstring(to_bitvector(o_Um))
@@ -103,10 +104,9 @@ begin
             severity error;
         assert o_neuron_addr = ADDR_RESET
             report "Reset Failed | Neuron Address was not set to 0"
-            severity error; 
+            severity error;
         rst <= '0';
         wait until rising_edge(clk); -- clk 2
-        
         i_V <= "0" & x"000014";
         i_T <= "00" & x"0004";
         i_Um <= "00" & x"000000A";
@@ -141,7 +141,10 @@ begin
         i_V <= (others => '0');
         i_T <= (others => '0');
         i_Um <= (others => '0');
+        wait until falling_edge(clk);
+        stall <= '1';
         wait until rising_edge(clk); -- clk 5
+        wait until falling_edge(clk);
         assert o_valid = '0'
             report "Valid signal falsely output as 1"
             severity error;
@@ -153,6 +156,22 @@ begin
             severity error;
         
         wait until rising_edge(clk); -- clk 6
+        wait until falling_edge(clk);
+        
+        assert o_valid = '0'
+            report "Valid signal failed to stall"
+            severity error;
+        assert o_finished_layer = '0'
+            report "Finished layer signal failed to stall"
+            severity error;
+        assert o_neuron_addr = "00"
+            report "Neuron address failed to stall | Expected value: 0 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
+            severity error;
+            
+        stall <= '0';
+            
+        wait until rising_edge(clk); -- clk 7
+        wait until falling_edge(clk);
 
         assert o_Um = "000" & x"00000F"
             report "First calcualtion failed | Expected output: 0x000000F | Actual output: " & to_hstring(to_bitvector(o_Um))
@@ -163,7 +182,8 @@ begin
         assert o_finished_layer = '1'
             report "Finished layer signal did not carry through with the um calculation"
             severity error;
-        wait until rising_edge(clk); -- clk 6
+        wait until rising_edge(clk); -- clk 8
+        wait until falling_edge(clk);
         assert o_neuron_addr = "10"
             report "Neuron address output wrong | Expected value: 2 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
             severity error;
@@ -178,7 +198,7 @@ begin
             report "Finished layer signal did not carry through with the um calculation"
             severity error;
         wait until rising_edge(clk);
-        
+        wait until falling_edge(clk);
         assert o_Um = "000" & x"000042"
             report "Third calcualtion failed | Expected output: 0x0000042 | Actual output: " & to_hstring(to_bitvector(o_Um))
             severity error;
@@ -189,6 +209,7 @@ begin
             report "Finished layer signal did not carry through with the um calculation"
             severity error;
         wait until rising_edge(clk);
+        wait until falling_edge(clk);
         
         report "Simulation Finished";
         finish;
