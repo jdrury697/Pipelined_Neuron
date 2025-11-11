@@ -66,6 +66,7 @@ signal weight_sum : std_logic_vector(WEIGHT_WIDTH downto 0) := (others => '0');
 signal finished_layer : std_logic := '0';
 signal out_neuron_addr : std_logic_vector(ADDR_WIDTH - 1 downto 0) := (others => '0');
 signal out_valid : std_logic := '0';
+signal i_stall : std_logic := '0';
 
 begin
 
@@ -83,6 +84,7 @@ dut : entity work.Neuron_Memory(rtl)
         i_neuron_addr => in_neuron_addr,
         i_en => en,
         i_valid => in_valid,
+        i_stall => i_stall,
         o_curr_Um => curr_Um,
         o_weight_sum => weight_sum,
         o_finished_layer => finished_layer,
@@ -100,6 +102,7 @@ dut : entity work.Neuron_Memory(rtl)
         en <= '1';
         in_valid <= '1';
         in_neuron_addr <= "00";
+        i_stall <= '0';
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         report "Test 1";
@@ -187,6 +190,17 @@ dut : entity work.Neuron_Memory(rtl)
         assert curr_Um = "000000000000000000000000001"
             report "Um at neuron address 0 not updated correctly | Expected value: 0x0000001 | Acutal value: " & to_hstring(to_bitvector(std_logic_vector(curr_Um)))
             severity error;
+        i_stall <= '1';
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+        report "Stall Test";
+        assert out_neuron_addr = "00"
+            report "Neuron address output didn't stall | Expected address: 0x0 | Actual address: " & to_hstring(to_bitvector(out_neuron_addr))
+            severity error;
+        assert curr_Um = "000000000000000000000000001"
+            report "Um at neuron address 0 didn't stall | Expected value: 0x0000001 | Acutal value: " & to_hstring(to_bitvector(std_logic_vector(curr_Um)))
+            severity error;
+        i_stall <= '0';
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         assert out_neuron_addr = "01"

@@ -52,6 +52,7 @@ entity Neuron_Memory is
         i_neuron_addr       : in std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
         i_en                : in std_logic;
         i_valid             : in std_logic;
+        i_stall             : in std_logic;
         
         o_curr_Um           : out um_t;
         o_weight_sum        : out std_logic_vector(WEIGHT_WIDTH downto 0); --Extra bit for overflow
@@ -130,8 +131,8 @@ begin
             neurons(n).valid <= '1';
         end loop;
     
-    elsif rising_edge(clk) then
-            
+    elsif rising_edge(clk) and i_stall = '0' then
+    
         o_valid          <= '0';
         o_finished_layer <= '0';
         

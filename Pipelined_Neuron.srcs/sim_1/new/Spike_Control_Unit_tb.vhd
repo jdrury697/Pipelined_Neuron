@@ -52,6 +52,8 @@ signal i_valid          : std_logic := '0';
 signal o_valid          : std_logic := '0';
 signal i_neuron_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
 signal o_neuron_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
+signal i_finished_layer : std_logic;
+signal o_finished_layer : std_logic;
 
 begin
 
@@ -64,10 +66,12 @@ begin
             i_overflow          => overflow,
             i_valid             => i_valid,
             i_neuron_addr       => i_neuron_addr,
+            i_finished_layer    => i_finished_layer,
             o_neuron_addr       => o_neuron_addr,
             o_valid             => o_valid,
             o_spike             => spike,
-            o_um                => um
+            o_um                => um,
+            o_finished_layer    => o_fnished_layer
         );
 
     sim_proc : process
@@ -76,6 +80,7 @@ begin
         neuron_voltage <= "000" & x"00000A";
         i_valid <= '1';
         i_neuron_addr <= "00";
+        i_finished_layer <= '0';
         wait for delay;
         assert spike = '0'
             report "Spike incorrectly detected when neuron_voltage = 0x000000A"
@@ -86,9 +91,13 @@ begin
         assert o_neuron_addr = "00"
             report "Neuron Addr did not properly pass through | Expected value: 0 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
             severity error;
+        assert o_finished_layer = '0'
+            report "Finished layer did not correctly pass through"
+            severity error;
         wait for delay;
         overflow <= '1';
         i_neuron_addr <= "10";
+        i_finished_layer <= '1';
         wait for delay;
         assert spike = '1'
             report "Spike did not fire when overflow occured"
@@ -98,6 +107,9 @@ begin
             severity error;
         assert o_neuron_addr = "10"
             report "Neuron Addr did not properly pass through | Expected value: 2 | Actual value: " & to_hstring(to_bitvector(o_neuron_addr))
+            severity error;
+        assert o_finished_layer = '1'
+            report "Finished layer did not correctly pass through"
             severity error;
         wait for delay;
         overflow <= '0';

@@ -55,7 +55,7 @@ end Network_Layer;
 
 architecture rtl of Network_Layer is
 
-signal spike_Um               : std_logic_vector(UM_WIDTH - 1 downto 0);
+signal spike_Um             : std_logic_vector(UM_WIDTH - 1 downto 0);
 signal spike_neuron_addr    : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0);
 signal spike_valid          : std_logic := '0';
 signal mem_Um               : um_t;
@@ -71,6 +71,9 @@ signal dsp_overflow         : std_logic;
 signal dsp_valid            : std_logic;
 
 signal dsp_finished_layer   : std_logic;
+signal mem_finished_layer   : std_logic;
+signal spike_finished_layer : std_logic;
+signal stall                : std_logic;
 
 begin
 
@@ -88,9 +91,10 @@ NEURON_MEM : entity work.Neuron_Memory(rtl)
         i_neuron_addr       => spike_neuron_addr,
         i_en                => i_en,
         i_valid             => spike_valid,
+        i_stall             => stall,
         o_curr_Um           => mem_Um,
         o_weight_sum        => mem_weight_sum,
-        o_finished_layer    => o_finished_layer,
+        o_finished_layer    => mem_finished_layer,
         o_neuron_addr       => mem_neuron_addr,
         o_valid             => mem_valid
     );
@@ -107,13 +111,13 @@ DSP_BLOCK : entity work.dsp_neuron(rtl)
     port map(
         clk => clk,
         rst => rst,
-        stall => '0', -- FIX THIS
+        stall => stall,
         i_valid => mem_valid,
         i_V => mem_weight_sum_adj,
         i_T => GEN_TAU,
         i_Um => mem_Um_adj,
         i_neuron_addr => mem_neuron_addr,
-        i_finished_layer => '0', -- FIX THIS
+        i_finished_layer => mem_finished_layer,
         o_um => dsp_um,
         o_neuron_addr => dsp_neuron_addr,
         o_overflow => dsp_overflow,
@@ -130,10 +134,12 @@ SPIKE_CTRL : entity work.Spike_Control_Unit(rtl)
         i_overflow => dsp_overflow,
         i_valid => dsp_valid,
         i_neuron_addr => dsp_neuron_addr,
+        i_finished_layer => dsp_finished_layer,
         o_spike => o_spike,
         o_valid => spike_valid,
         o_neuron_addr => spike_neuron_addr,
-        o_um => spike_um
+        o_um => spike_um,
+        o_finished_layer => spike_finished_layer
     );
 
 
