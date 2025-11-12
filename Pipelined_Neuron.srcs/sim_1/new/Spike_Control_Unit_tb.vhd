@@ -71,7 +71,7 @@ begin
             o_valid             => o_valid,
             o_spike             => spike,
             o_um                => um,
-            o_finished_layer    => o_fnished_layer
+            o_finished_layer    => o_finished_layer
         );
 
     sim_proc : process

@@ -44,7 +44,8 @@ entity Spike_Memory is
         i_next_layer_finished   : in std_logic;
         o_spikes                : out std_logic_vector(2 ** GEN_ADDR_WIDTH - 1 downto 0);
         o_en                    : out std_logic;
-        o_stall                 : out std_logic
+        o_stall                 : out std_logic;
+        o_finished_layer        : out std_logic
     );
 end Spike_Memory;
 
@@ -75,5 +76,6 @@ end process;
 o_stall <= '1' when i_prev_layer_finished = '1' and i_next_layer_finished = '0' else '0';
 o_en <= '0' when i_prev_layer_finished = '0' and i_next_layer_finished = '1' else '1';
 o_spikes <= curr_spikes;
+o_finished_layer <= i_prev_layer_finished;
 
 end rtl;

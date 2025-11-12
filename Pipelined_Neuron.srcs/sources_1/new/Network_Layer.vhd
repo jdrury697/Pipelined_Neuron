@@ -44,12 +44,14 @@ entity Network_Layer is
     );
 
     port (
-        clk                 : in std_logic;
-        rst                 : in std_logic;
-        i_prev_spikes       : in std_logic_vector(GEN_NUM_WEIGHTS_PER_NEURON - 1 downto 0);
-        i_en                : in std_logic;
-        o_spike             : out std_logic;
-        o_finished_layer    : out std_logic
+        clk                     : in std_logic;
+        rst                     : in std_logic;
+        i_prev_spikes           : in std_logic_vector(GEN_NUM_WEIGHTS_PER_NEURON - 1 downto 0);
+        i_en                    : in std_logic;
+        i_next_layer_finished   : in std_logic;
+        o_spikes                : out std_logic_vector(2 ** GEN_ADDR_WIDTH - 1 downto 0);
+        o_finished_layer        : out std_logic;
+        o_en                    : out std_logic
     );
 end Network_Layer;
 
@@ -73,6 +75,9 @@ signal dsp_valid            : std_logic;
 signal dsp_finished_layer   : std_logic;
 signal mem_finished_layer   : std_logic;
 signal spike_finished_layer : std_logic;
+
+signal ctrl_spike           : std_logic;
+
 signal stall                : std_logic;
 
 begin
@@ -135,12 +140,28 @@ SPIKE_CTRL : entity work.Spike_Control_Unit(rtl)
         i_valid => dsp_valid,
         i_neuron_addr => dsp_neuron_addr,
         i_finished_layer => dsp_finished_layer,
-        o_spike => o_spike,
+        o_spike => ctrl_spike,
         o_valid => spike_valid,
         o_neuron_addr => spike_neuron_addr,
         o_um => spike_um,
         o_finished_layer => spike_finished_layer
     );
 
+SPIKE_MEM : entity work.Spike_Memory(rtl)
+    generic map(
+        GEN_ADDR_WIDTH => GEN_ADDR_WIDTH
+    )
+    port map(
+        clk => clk,
+        rst => rst,
+        i_neuron_addr => spike_neuron_addr,
+        i_spike => ctrl_spike,
+        i_prev_layer_finished => spike_finished_layer,
+        i_next_layer_finished => i_next_layer_finished,
+        o_spikes => o_spikes,
+        o_en => o_en,
+        o_stall => stall,
+        o_finished_layer => o_finished_layer
+    );
 
 end rtl;
