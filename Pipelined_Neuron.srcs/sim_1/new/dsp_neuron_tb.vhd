@@ -97,6 +97,7 @@ begin
         i_neuron_addr <= "00";
         stall <= '0';
         wait until rising_edge(clk); -- clk 1
+        wait until falling_edge(clk);
         assert o_Um = RESET_ASSERT
             report "Reset Failed | Expected output: 0x0000000 | Actual output: " & to_hstring(to_bitvector(o_Um))
             severity error;
@@ -108,6 +109,7 @@ begin
             severity error;
         rst <= '0';
         wait until rising_edge(clk); -- clk 2
+        wait until falling_edge(clk);
         i_V <= "0" & x"000014";
         i_T <= "00" & x"0004";
         i_Um <= "00" & x"000000A";
@@ -115,6 +117,7 @@ begin
         i_finished_layer <= '1';
         i_neuron_addr <= "10";
         wait until rising_edge(clk); -- clk 3
+        wait until falling_edge(clk);
         assert o_valid = '0'
             report "Valid signal falsely output as 1"
             severity error;
@@ -129,6 +132,7 @@ begin
         i_T <= "00" & x"0002";
         i_Um <= "00" & x"0000004";
         wait until rising_edge(clk); -- clk 4
+        wait until falling_edge(clk);
         assert o_valid = '0'
             report "Valid signal falsely output as 1"
             severity error;
@@ -142,7 +146,6 @@ begin
         i_V <= (others => '0');
         i_T <= (others => '0');
         i_Um <= (others => '0');
-        wait until falling_edge(clk);
         stall <= '1';
         wait until rising_edge(clk); -- clk 5
         wait until falling_edge(clk);
