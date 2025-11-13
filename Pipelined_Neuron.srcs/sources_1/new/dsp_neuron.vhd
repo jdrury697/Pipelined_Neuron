@@ -69,6 +69,7 @@ signal c_d2         : std_logic_vector(47 downto 0);
 signal v_1          : std_logic := '0';
 signal v_2          : std_logic := '0';
 signal v_3          : std_logic := '0';
+signal v_4          : std_logic := '0';
 
 signal finished_1   : std_logic := '0';
 signal finished_2   : std_logic := '0';
@@ -77,6 +78,7 @@ signal finished_3   : std_logic := '0';
 signal neuron_addr_1 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
 signal neuron_addr_2 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
 signal neuron_addr_3 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
+signal neuron_addr_4 : std_logic_vector(GEN_ADDR_WIDTH - 1 downto 0) := (others => '0');
 
 -- unused tie off signals
 signal u_acout          : std_logic_vector(29 downto 0);
@@ -198,10 +200,12 @@ begin
             v_1 <= '0';
             v_2 <= '0';
             v_3 <= '0';
+            v_4 <= '0';
         elsif rising_edge(clk) and stall = '0' then
             v_1 <= i_valid;
             v_2 <= v_1;
             v_3 <= v_2;
+            v_4 <= v_3;
         end if;
     end process;
     
@@ -224,17 +228,19 @@ begin
             neuron_addr_1 <= (others => '0');
             neuron_addr_2 <= (others => '0');
             neuron_addr_3 <= (others => '0');
+            neuron_addr_4 <= (others => '0');
         elsif rising_edge(clk) and stall = '0' then
             neuron_addr_1 <= i_neuron_addr;
             neuron_addr_2 <= neuron_addr_1;
-            neuron_addr_3 <= neuron_addr_2; 
+            neuron_addr_3 <= neuron_addr_2;
+            neuron_addr_4 <= neuron_addr_3; 
         end if;
     end process;
     
     o_Um <= result(26 downto 0);
     o_overflow <= overflow;
-    o_valid <= v_3;
-    o_neuron_addr <= neuron_addr_3;
+    o_valid <= v_4;
+    o_neuron_addr <= neuron_addr_4;
     o_finished_layer <= finished_3;
 
 end rtl;

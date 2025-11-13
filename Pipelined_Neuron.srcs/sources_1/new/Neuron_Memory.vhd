@@ -136,12 +136,6 @@ begin
         o_valid          <= '0';
         o_finished_layer <= '0';
         
-        if i_valid = '1' then
-            neurons(to_integer(unsigned(i_neuron_addr))).um <= signed(i_new_Um);
-            --Ensures that the neuron is written to before new um is calculated each time
-            neurons(to_integer(unsigned(i_neuron_addr))).valid <= '1';
-        end if;
-        
         if i_en = '1' then  
             sum := (others => '0');
             for w in 0 to GEN_NUM_WEIGHTS_PER_NEURON - 1 loop
@@ -165,6 +159,13 @@ begin
             end if;
             neurons(neuron_idx).valid <= '0';
         end if;
+        
+        if i_valid = '1' then
+            neurons(to_integer(unsigned(i_neuron_addr))).um <= signed(i_new_Um);
+            --Ensures that the neuron is written to before new um is calculated each time
+            neurons(to_integer(unsigned(i_neuron_addr))).valid <= '1';
+        end if;
+        
     end if;
 end process;
 
