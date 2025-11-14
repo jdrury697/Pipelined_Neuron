@@ -61,7 +61,8 @@ dut : entity work.Network_Layer(rtl)
     generic map(
         GEN_ADDR_WIDTH              => ADDR_WIDTH,
         GEN_NUM_WEIGHTS_PER_NEURON  => NUM_WEIGHTS_PER_NEURON,
-        GEN_INIT_WEIGHTS            => "0000000000000011000000000000101011111111111110000000000000001100000000000000001100000000000010101111111111111000000000000000110000000000000000110000000000001010111111111111100000000000000011000000000000000011000000000000101011111111111110000000000000001100",
+        -- All 1s for neuron 0 all 2s for neuron 1 all 3s for neuron 2 and all 4s for neuron 3
+        GEN_INIT_WEIGHTS            => "0000000000000001000000000000000100000000000000010000000000000001000000000000001000000000000000100000000000000010000000000000001000000000000000110000000000000011000000000000001100000000000000110000000000000100000000000000010000000000000001000000000000000100",
         GEN_TAU                     => "00" & x"0002"
     )
     port map(
@@ -85,6 +86,7 @@ begin
     rst <= '0';
     i_en <= '1';
     i_prev_spikes <= (others => '1');
+    i_next_layer_finished <= '1';
     
     wait for 80ns;
     
@@ -92,9 +94,9 @@ begin
     
     wait for PERIOD;
     
-    i_next_layer_finished <= '0';
+    --i_next_layer_finished <= '0';
     
-    wait for 100ns;
+    wait for 200ns;
     
     finish;
     
