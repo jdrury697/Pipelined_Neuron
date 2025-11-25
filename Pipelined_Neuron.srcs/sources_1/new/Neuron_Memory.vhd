@@ -41,7 +41,7 @@ entity Neuron_Memory is
     generic(
         GEN_ADDR_WIDTH              : natural := 2;
         GEN_NUM_WEIGHTS_PER_NEURON  : natural := 4;
-        GEN_INIT_WEIGHTS            : std_logic_vector(255 downto 0) := (others => '0')
+        GEN_INIT_WEIGHTS            : std_logic_vector((2 ** GEN_ADDR_WIDTH) * GEN_NUM_WEIGHTS_PER_NEURON * WEIGHT_WIDTH - 1 downto 0) := (others => '0')
     );
 
     Port (

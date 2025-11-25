@@ -18,6 +18,9 @@
 -- 
 ----------------------------------------------------------------------------------
 
+--TODO: IMPLEMENT SIGNED FIXED-POINT SYSTEM WITH 16 BIT VALUES WHERE TOP 4 BITS ARE INTEGER VALUE AND BOTTOM 12 ARE DECIMAL VALUE (MSB IS SIGN BIT)
+--FOUND FROM PAPER TITLED: An FPGA Processor Combining Point Cloud and SNN for DVS-based ADAS Application
+
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
