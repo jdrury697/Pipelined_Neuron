@@ -188,16 +188,20 @@ begin
    -- End of DSP48E1_inst instantiation		
 				
    
-   c_reg_delay : process(clk)
+   c_reg_delay : process(clk, rst)
     begin
-        if rising_edge(clk) and stall = '0' then
-            c_d1(29 downto 0)   <= i_Um;
-            c_d1(47 downto 30)  <= (others => '0');
+        if rst = '1' then
+            c_d1   <= (others => '0');
+            c_d2   <= (others => '0');
+        elsif rising_edge(clk) and stall = '0' then
+            c_d1(41 downto 12)  <= i_Um;
+            c_d1(47 downto 42)  <= (others => i_Um(29));
+            c_d1(11 downto 0)   <= (others => '0');
             c_d2                <= c_d1;
         end if;
     end process;
     
-    valid_delay : process(clk)
+    valid_delay : process(clk, rst)
     begin
         if rst = '1' then
             v_1 <= '0';
@@ -212,7 +216,7 @@ begin
         end if;
     end process;
     
-    finished_delay : process(clk)
+    finished_delay : process(clk, rst)
     begin
         if rst = '1' then
             finished_1 <= '0';
@@ -225,7 +229,7 @@ begin
         end if;
     end process;
     
-    neuron_addr_delay : process(clk)
+    neuron_addr_delay : process(clk, rst)
     begin
         if rst = '1' then
             neuron_addr_1 <= (others => '0');
@@ -240,7 +244,7 @@ begin
         end if;
     end process;
     
-    o_Um <= result(26 downto 0);
+    o_Um <= result(38 downto 12);
     o_overflow <= overflow;
     o_valid <= v_4;
     o_neuron_addr <= neuron_addr_4;
