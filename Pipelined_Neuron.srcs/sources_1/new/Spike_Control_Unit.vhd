@@ -46,7 +46,7 @@ end Spike_Control_Unit;
 architecture rtl of Spike_Control_Unit is
 
 -- Output a spike if the incoming voltage overflowed, or was higher than the spiking threshold
-constant spike_threshold    : signed(26 downto 0) := "000" & x"0000FF";
+constant spike_threshold    : signed(26 downto 0) := "000000000000000111111111111";
 signal is_spiking           : boolean := FALSE;
 
 begin
